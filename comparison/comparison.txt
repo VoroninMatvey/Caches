@@ -92,8 +92,8 @@ perfect hits: 23728
 ------------------------------------------------------------------------------------------------------------------------
 
 						file name: test10.txt
-capacity: 2000
-number of page: 75000
+capacity: 110
+number of page: 1000000
 
 lfu hits: 110 010
 perfect hits: 416158
