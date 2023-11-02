@@ -39,4 +39,4 @@ The program takes as input:
 4) maximum value of incoming page
 5) amount of generated tests
 
-
+In directory cache_data are generated tests and answers
