@@ -20,7 +20,7 @@ Use the perfect cache executable file:
 The program takes as input: 
 1) capacity of cache
 2) number of page
-3) page1 page2 page3 ...
+3) page1  page2  page3 ...
 ## Building the test:
 ```
 cd cache_tests/
