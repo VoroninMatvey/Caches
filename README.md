@@ -9,4 +9,34 @@ cmake -S ./ -B build
 cd build/
 make
 ```
+Use the lfu cache executable file:
+```
+./lfu
+```
+Use the perfect cache executable file:
+```
+./perfect
+```
+The program takes as input: 
+1) capacity of cache
+2) number of page
+3) page1 page2 page3 ...
+## Building the test:
+```
+cd cache_tests/
+cmake -S ./ -B build
+cd build/
+make
+```
+Use the test generation executable file:
+```
+./tests
+```
+The program takes as input:
+1) capacity of cache
+2) number of page
+3) minimum value of incoming page
+4) maximum value of incoming page
+5) amount of generated tests
+
 
