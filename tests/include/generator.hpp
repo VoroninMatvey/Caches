@@ -203,23 +203,19 @@ int slow_perfect::lookup_update(int page, int counter) {
 class generator {
 
 public:
-        generator(int max_cache, int min_cache, int max_numb_of_page, int min_numb_of_page, int max_value_of_page, int min_value_of_page) :
-                max_cache_{max_cache}, 
-                min_cache_{min_cache},
-                max_numb_of_page_{max_numb_of_page},
-                min_numb_of_page_{min_numb_of_page},
-                max_value_of_page_{max_value_of_page},
-                min_value_of_page_{min_value_of_page} {}
-        void test_gen(int n); //generates n text with the specified parameters, counts the number of hits for both caches, writes the tests themselves and the answers to them to files
+        generator(int capacity, int numb_of_page, int min_value_of_page, int max_value_of_page) :
+                capacity_{capacity}, 
+                numb_of_page_{numb_of_page},
+                min_value_of_page_{min_value_of_page},
+                max_value_of_page_{max_value_of_page} {}
+        void test_gen(int n); //generates n test with the specified parameters, counts the number of hits for both caches, writes the tests themselves and the answers to them to files
         
 
 private:
-        const int max_cache_;
-        const int min_cache_;
-        const int max_numb_of_page_;
-        const int min_numb_of_page_;
-        const int max_value_of_page_;
+        const int capacity_;
+        const int numb_of_page_;
         const int min_value_of_page_;
+        const int max_value_of_page_;
 
         int random(int min_val, int max_val);
 }; //<-- class generator
@@ -240,30 +236,26 @@ void generator::test_gen(int n) {
         fs::create_directory("cache_data/answers");
     }
 
-    int capacity;
-    int numb_of_page;
     int page;
     for(int i = 0; i < n; ++i) {
     
         int lfu_hits = 0;
         int perfect_hits = 0;
-        capacity = random(min_cache_, max_cache_);
-        numb_of_page = random(min_numb_of_page_, max_numb_of_page_);
-        slow_lfu temp_lfu(capacity, numb_of_page);
-        slow_perfect temp_perfect(capacity, numb_of_page);
+        slow_lfu temp_lfu(capacity_, numb_of_page_);
+        slow_perfect temp_perfect(capacity_, numb_of_page_);
 
         std::ofstream file_test("cache_data/tests/test" + std::to_string(i + 1) + ".txt");
         std::ofstream file_answ("cache_data/answers/answer" + std::to_string(i + 1) + ".txt");
-        file_test << capacity << ' ' << numb_of_page << ' ';
+        file_test << capacity_ << ' ' << numb_of_page_ << ' ';
 
-        for(int j = 0; j < numb_of_page; ++j) {
+        for(int j = 0; j < numb_of_page_; ++j) {
             page = random(min_value_of_page_, max_value_of_page_);
             file_test << page << ' ';
             lfu_hits += temp_lfu.lookup_update(page);
             temp_perfect.one_iteration_initial(page);
         }
 
-        for(int j = 0; j < numb_of_page; ++j) {
+        for(int j = 0; j < numb_of_page_; ++j) {
 
             page = temp_perfect.get_page(j);
             perfect_hits += temp_perfect.lookup_update(page, j);
@@ -274,4 +266,3 @@ void generator::test_gen(int n) {
     }
 }
 } // <-- namespace Tests
-
