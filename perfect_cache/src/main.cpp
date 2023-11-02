@@ -25,7 +25,7 @@ int main() {
     std::cin >> numb_of_page;
 
     Cache::perfect_cache perfect_final(capacity, numb_of_page);
-    std::cout << "Number of hits: " << check_hits(capacity, numb_of_page, perfect_final) << '\n';
+    std::cout << check_hits(capacity, numb_of_page, perfect_final) << '\n';
 
     return 0;
 }

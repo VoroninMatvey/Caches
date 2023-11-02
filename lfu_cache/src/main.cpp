@@ -25,7 +25,7 @@ int main() {
         std::cin >> amount;
 
         Cache::lfu_cache lfu_final(capacity);
-        std::cout << "Number of hits: " << check_hits(capacity, amount, lfu_final) << '\n';
+        std::cout << check_hits(capacity, amount, lfu_final) << '\n';
 
         return 0;
 }
