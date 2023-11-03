@@ -1,7 +1,7 @@
 #include <iostream>
 #include "perfect_cache.hpp"
 
-int check_hits(int capacity, int numb_of_page, const Cache::perfect_cache& perfect_final) {
+int check_hits(int capacity, int numb_of_page, Cache::perfect_cache& perfect_final) {
 
     int hits = 0;
     int page = 0;
