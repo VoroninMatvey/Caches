@@ -54,10 +54,11 @@ void lfu_cache::delete_from_hash(int page) {
 
         hashiter it1 = hashtable_.find(page);
         itemiter it2 = it1 -> second;
-        it2 -> freqIt_ -> itemlist_.erase(it2);
+        auto freq_it = it2 -> freqIt_;
+        freq_it -> itemlist_.erase(it2);
 
-        if(it2 -> freqIt_ ->itemlist_.empty()) {
-                cache_.erase(it2 -> freqIt_);
+        if(freq_it ->itemlist_.empty()) {
+                cache_.erase(freq_it);
         }
 
         hashtable_.erase(it1);
@@ -76,10 +77,11 @@ void lfu_cache::insert_first_node(int page) {
         if(cache_.empty() || cache_.begin() -> freq_ != 1) {
                 cache_.push_front(1);
         }
-
-        cache_.begin() -> itemlist_.push_front(page);
-        cache_.begin() -> itemlist_.begin() -> freqIt_ = cache_.begin();
-        hashtable_[page] = cache_.begin() -> itemlist_.begin();
+	
+	auto& it = cache_.begin() -> itemlist_;
+        it.push_front(page);
+        it.begin() -> freqIt_ = cache_.begin();
+        hashtable_[page] = it.begin();
 }
 
  void lfu_cache::frequency_increase(int page) {

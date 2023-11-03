@@ -38,7 +38,7 @@ bool slow_lfu::cache_is_full() {
 
 void slow_lfu::insert_one_node(int page) {
 
-    cache_.push_front(std::make_pair(page, 1));
+    cache_.emplace_front(page, 1);
 }
 
 slow_lfu::list_iter slow_lfu::victim_finder() {
