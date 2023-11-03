@@ -1,6 +1,6 @@
 # Implementation of LFU cache and ideal cache
 ## Information about project:
-In this project, the LFU cache was implemented - a cache from which the page that is called the least number of times is thrown away. An “ideal” cache was also implemented, it is based on the idea that we know in advance all the pages that have arrived.
+In this project, the LFU cache was implemented  -  a cache from which the page that is called the least number of times is thrown away. An “ideal” cache was also implemented, it is based on the idea that we know in advance all the pages that have arrived.
 ## Building the project:
 ```
 git clone git@github.com:VoroninMatvey/Caches.git
@@ -17,7 +17,7 @@ Use the perfect cache executable file:
 ```
 ./perfect
 ```
-The program takes as input: 
+The program takes as input: nu
 1) capacity of cache
 2) number of page
 3) page1  page2  page3 ...
@@ -37,6 +37,6 @@ The program takes as input:
 2) number of page
 3) minimum value of incoming page
 4) maximum value of incoming page
-5) amount of generated tests
+5) number of generated tests
 
 In directory cache_data are generated tests and answers
