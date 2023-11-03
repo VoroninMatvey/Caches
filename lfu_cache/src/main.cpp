@@ -1,7 +1,7 @@
 #include <iostream>
 #include "lfu_cache.hpp"
 
-int check_hits(int capacity, int amount, Cache::lfu_cache lfu_final) {
+int check_hits(int capacity, int amount, const Cache::lfu_cache& lfu_final) {
 
         int hits = 0;
         int page = 0;
