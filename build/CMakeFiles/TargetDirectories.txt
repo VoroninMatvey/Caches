@@ -1,0 +1,4 @@
+/home/matvey/Documents/research/Caches/build/CMakeFiles/lfu.dir
+/home/matvey/Documents/research/Caches/build/CMakeFiles/perfect.dir
+/home/matvey/Documents/research/Caches/build/CMakeFiles/edit_cache.dir
+/home/matvey/Documents/research/Caches/build/CMakeFiles/rebuild_cache.dir
