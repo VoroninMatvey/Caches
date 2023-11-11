@@ -5,15 +5,24 @@
 #include <utility>
 #include <cstdlib>
 
+typedef int(*func_pointer)(int);
+int slow_get_page(int key) {
+
+    return key;
+}
+
 namespace Cache {
 
+template<typename T, typename KeyT>
 class perfect_cache {
 
+        using page_t = std::pair<KeyT, T>;
+
         struct cache_item {
-            const int page_;
+            page_t page_;
             int numbefnext_;
 
-            cache_item(int page, int numbefnext) : page_{page}, numbefnext_{numbefnext}  {}
+            cache_item(page_t page, int numbefnext) : page_{page}, numbefnext_{numbefnext}  {}
         };
 
         struct un_buf_item {
@@ -23,53 +32,56 @@ class perfect_cache {
         };
 
         using cache_item_iter = typename std::list<cache_item>::iterator;
-        using un_buf_iter = typename std::unordered_map<int, un_buf_item>::iterator;
-        using find_iter = typename std::unordered_map<int, cache_item_iter>::iterator;
+        using un_buf_iter = typename std::unordered_map<KeyT, un_buf_item>::iterator;
+        using find_iter = typename std::unordered_map<KeyT, cache_item_iter>::iterator;
 
 public:
          perfect_cache(int capacity, int number) : capacity_{capacity}, numb_of_page_{number} {}
          void initial_assembly();
-         int lookup_update(int page, int counter);
-         int get_incoming_page(int counter);
+         int lookup_update(KeyT key, int counter, func_pointer slow_get_page);
+         KeyT get_incoming_page(int counter);
 
 private:
 
         const int capacity_;
         const int numb_of_page_;
-        std::unordered_map<int, un_buf_item> unordered_buffer_; // saves the page arrival history
+        std::unordered_map<KeyT, un_buf_item> unordered_buffer_; // saves the page arrival history
         std::list<cache_item> cache_;
-        std::vector<int> ordered_buffer_; // saves the data received from input
-        std::unordered_map<int, cache_item_iter> elem_finder_; // finds element with corresponding value in cache_
+        std::vector<KeyT> ordered_buffer_; // saves the data received from input
+        std::unordered_map<KeyT, cache_item_iter> elem_finder_; // finds element with corresponding value in cache_
 
-        int calculation_length(int page, int counter);
-        void insert_elem(int page, int counter);
+        int calculation_length(KeyT key, int counter);
+        void insert_elem(KeyT key, int counter, func_pointer slow_get_page);
         void decrease_of_numb();
-        void it_is_hit(int page, int counter);
-        void remove_elem(int page);
-        int victim_finder(int page, int length);//lookinf for a victim from the elements of cache and incoming page, also decrease of numbefnext_ all list's elements
+        void it_is_hit(KeyT key, int counter);
+        void remove_elem(KeyT key);
+        KeyT victim_finder(KeyT key, int length);//looking for a victim from the elements of cache and incoming page, also decrease of numbefnext_ all list's elements
         bool cache_is_full();
 }; // <-- Class perfect_cache
 
-bool perfect_cache::cache_is_full() {
+template<typename T, typename KeyT>
+bool perfect_cache<T, KeyT>::cache_is_full() {
 
     return elem_finder_.size() == capacity_;
 }
 
-int perfect_cache::get_incoming_page(int counter) {
+template<typename T, typename KeyT>
+KeyT perfect_cache<T, KeyT>::get_incoming_page(int counter) {
 
     return ordered_buffer_[counter];
 }
 
-void perfect_cache::initial_assembly() {
+template<typename T, typename KeyT>
+void perfect_cache<T, KeyT>::initial_assembly() {
 
-    int page = 0;
+    KeyT key = 0;
     un_buf_iter it;
 
     for(int i = 0; i < numb_of_page_; ++i) {
 
-        std::cin >> page;
-        ordered_buffer_.push_back(page);
-        it = unordered_buffer_.find(page);
+        std::cin >> key;
+        ordered_buffer_.push_back(key);
+        it = unordered_buffer_.find(key);
 
         if(it != unordered_buffer_.end()) {
 
@@ -77,33 +89,36 @@ void perfect_cache::initial_assembly() {
         } else {
 
             un_buf_item c;
-            unordered_buffer_[page] = c;
-            (unordered_buffer_.find(page) -> second).history_.push_back(i);
+            unordered_buffer_[key] = c;
+            (unordered_buffer_.find(key) -> second).history_.push_back(i);
         }
     }
 }
 
-int perfect_cache::calculation_length(int page, int counter) {
+template<typename T, typename KeyT>
+int perfect_cache<T, KeyT>::calculation_length(KeyT key, int counter) {
 
-    un_buf_iter it = unordered_buffer_.find(page);
+    un_buf_iter it = unordered_buffer_.find(key);
     if(((it -> second).history_.begin() + (it -> second).amount_) != (it -> second).history_.end()) {
 
-         int length = (it -> second).history_[(it -> second).amount_] - counter;
+        int length = (it -> second).history_[(it -> second).amount_] - counter;
         return length;
     } else {
         return -1;
     }
 }
 
-void perfect_cache::insert_elem(int page, int counter) {
+template<typename T, typename KeyT>
+void perfect_cache<T, KeyT>::insert_elem(KeyT key, int counter, func_pointer slow_get_page) {
 
-    int length = calculation_length(page, counter);
-    cache_item c(page, length);
+    int length = calculation_length(key, counter);
+    cache_item c(std::make_pair(key, slow_get_page(key)), length);
     cache_.push_front(c);
-    elem_finder_[page] = cache_.begin();
+    elem_finder_[key] = cache_.begin();
 }
 
-void perfect_cache::decrease_of_numb() {
+template<typename T, typename KeyT>
+void perfect_cache<T, KeyT>::decrease_of_numb() {
 
     cache_item_iter it = cache_.begin();
     while(it != cache_.end()) {
@@ -113,25 +128,28 @@ void perfect_cache::decrease_of_numb() {
     }
 }
 
-void perfect_cache::it_is_hit(int page, int counter) {
+template<typename T, typename KeyT>
+void perfect_cache<T, KeyT>::it_is_hit(KeyT key, int counter) {
 
-    int length = calculation_length(page, counter);
-    elem_finder_.find(page) -> second -> numbefnext_ = length;
+    int length = calculation_length(key, counter);
+    elem_finder_.find(key) -> second -> numbefnext_ = length;
     decrease_of_numb();
 }
 
-void perfect_cache::remove_elem(int page) {
+template<typename T, typename KeyT>
+void perfect_cache<T, KeyT>::remove_elem(KeyT key) {
 
-    cache_item_iter it1 = elem_finder_.find(page) -> second;
-    find_iter it2 = elem_finder_.find(page);
+    cache_item_iter it1 = elem_finder_.find(key) -> second;
+    find_iter it2 = elem_finder_.find(key);
     elem_finder_.erase(it2);
     cache_.erase(it1);
 }
 
-int perfect_cache::victim_finder(int page, int length) {
+template<typename T, typename KeyT>
+KeyT perfect_cache<T, KeyT>::victim_finder(KeyT key, int length) {
 
     cache_item_iter it = cache_.begin();
-    int cor_page = it -> page_;
+    KeyT cor_key = it -> page_.first;
     int cor_length = it -> numbefnext_;
     ++it;
 
@@ -139,48 +157,49 @@ int perfect_cache::victim_finder(int page, int length) {
 
         if(it -> numbefnext_ > cor_length) {
 
-            cor_page = it -> page_;
+            cor_key = it -> page_.first;
             cor_length = it -> numbefnext_;
         } else if (it -> numbefnext_ < 0) {
 
-            cor_page = it -> page_;
-            return cor_page;
+            cor_key = it -> page_.first;
+            return cor_key;
         }
         ++it;
     }
-    return cor_page;
+    return cor_key;
 }
 
-int perfect_cache::lookup_update(int page, int counter) {
+template<typename T, typename KeyT>
+int perfect_cache<T, KeyT>::lookup_update(KeyT key, int counter, func_pointer slow_get_page) {
 
-    ++((unordered_buffer_.find(page) -> second).amount_);
+    ++((unordered_buffer_.find(key) -> second).amount_);
 
-    if(cache_is_full() && elem_finder_.find(page) == elem_finder_.end()) {
+    if(cache_is_full() && elem_finder_.find(key) == elem_finder_.end()) {
 
-        int length = calculation_length(page, counter);
-        int victim;
+        int length = calculation_length(key, counter);
+        KeyT victim;
         if(length < 0) {
 
-            victim = page;
+            victim = key;
         } else {
 
-            victim = victim_finder(page, length);
+            victim = victim_finder(key, length);
         }
 
-        if(victim != page) {
+        if(victim != key) {
             remove_elem(victim);
-            insert_elem(page, counter);
+            insert_elem(key, counter, slow_get_page);
             decrease_of_numb();
         }
         return 0;
-    } else if(!cache_is_full() && elem_finder_.find(page) == elem_finder_.end()) {
+    } else if(!cache_is_full() && elem_finder_.find(key) == elem_finder_.end()) {
 
-        insert_elem(page, counter);
+        insert_elem(key, counter, slow_get_page);
         decrease_of_numb();
         return 0;
     } else {
 
-        it_is_hit(page, counter);
+        it_is_hit(key, counter);
         return 1;
     }
 }

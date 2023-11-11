@@ -11,7 +11,7 @@ int slow_get_page(int key) {
 
 namespace Cache {
 
-template<typename T, typename KeyT = int>
+template<typename T, typename KeyT>
 class lfu_cache {
 public:
 

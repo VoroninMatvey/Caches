@@ -1,7 +1,7 @@
 #include <iostream>
 #include "lfu_cache.hpp"
 
-template<typename T, typename KeyT = int>
+template<typename T, typename KeyT>
 int check_hits(int capacity, int amount, Cache::lfu_cache<T, KeyT>& lfu_final) {
 
         int hits = 0;
@@ -12,7 +12,7 @@ int check_hits(int capacity, int amount, Cache::lfu_cache<T, KeyT>& lfu_final) {
 
         for(int i = 0; i < amount; ++i) {
                 std::cin >> key;
-                hits += lfu_final.lookup_update(key, slow_get_page(key));
+                hits += lfu_final.lookup_update(key, slow_get_page);
         }
         return hits;
 }
@@ -25,7 +25,7 @@ int main() {
         int amount = 0;
         std::cin >> amount;
 
-        Cache::lfu_cache lfu_final(capacity);
+        Cache::lfu_cache<int, int> lfu_final(capacity);
         std::cout << check_hits(capacity, amount, lfu_final) << '\n';
 
         return 0;
