@@ -12,7 +12,7 @@ int check_hits(int capacity, int numb_of_page, Cache::perfect_cache<T, KeyT>& pe
     for(int i = 0; i < numb_of_page; ++i) {
 
         key = perfect_final.get_incoming_page(i);
-        hits += perfect_final.lookup_update(key, i, slow_get_page);
+        hits += perfect_final.lookup_update(key, slow_get_page);
     }
     return hits;
 }

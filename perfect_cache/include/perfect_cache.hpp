@@ -20,9 +20,9 @@ class perfect_cache {
 
         struct cache_item {
             page_t page_;
-            int numbefnext_;
+            int nextappearance_;
 
-            cache_item(page_t page, int numbefnext) : page_{page}, numbefnext_{numbefnext}  {}
+            cache_item(page_t page, int nextappearance) : page_{page}, nextappearance_{nextappearance}  {}
         };
 
         struct un_buf_item {
@@ -36,10 +36,10 @@ class perfect_cache {
         using find_iter = typename std::unordered_map<KeyT, cache_item_iter>::iterator;
 
 public:
-         perfect_cache(int capacity, int number) : capacity_{capacity}, numb_of_page_{number} {}
-         void initial_assembly();
-         int lookup_update(KeyT key, int counter, func_pointer slow_get_page);
-         KeyT get_incoming_page(int counter);
+        perfect_cache(int capacity, int number) : capacity_{capacity}, numb_of_page_{number} {}
+        void initial_assembly();
+        int lookup_update(KeyT key, func_pointer slow_get_page);
+        KeyT get_incoming_page(int counter);
 
 private:
 
@@ -50,12 +50,11 @@ private:
         std::vector<KeyT> ordered_buffer_; // saves the data received from input
         std::unordered_map<KeyT, cache_item_iter> elem_finder_; // finds element with corresponding value in cache_
 
-        int calculation_length(KeyT key, int counter);
-        void insert_elem(KeyT key, int counter, func_pointer slow_get_page);
-        void decrease_of_numb();
-        void it_is_hit(KeyT key, int counter);
+        int calculation_next_appearance(KeyT key);
+        void insert_elem(KeyT key, func_pointer slow_get_page);
+        void it_is_hit(KeyT key);
         void remove_elem(KeyT key);
-        KeyT victim_finder(KeyT key, int length);//looking for a victim from the elements of cache and incoming page, also decrease of numbefnext_ all list's elements
+        KeyT victim_finder(KeyT key, int next);//looking for a victim from the elements of cache and incoming page, also decrease of numbefnext_ all list's elements
         bool cache_is_full();
 }; // <-- Class perfect_cache
 
@@ -96,44 +95,32 @@ void perfect_cache<T, KeyT>::initial_assembly() {
 }
 
 template<typename T, typename KeyT>
-int perfect_cache<T, KeyT>::calculation_length(KeyT key, int counter) {
+int perfect_cache<T, KeyT>::calculation_next_appearance(KeyT key) {
 
     un_buf_iter it = unordered_buffer_.find(key);
     if(((it -> second).history_.begin() + (it -> second).amount_) != (it -> second).history_.end()) {
 
-        int length = (it -> second).history_[(it -> second).amount_] - counter;
-        return length;
+        return (it -> second).history_[(it -> second).amount_];
     } else {
         return -1;
     }
+
 }
 
 template<typename T, typename KeyT>
-void perfect_cache<T, KeyT>::insert_elem(KeyT key, int counter, func_pointer slow_get_page) {
+void perfect_cache<T, KeyT>::insert_elem(KeyT key, func_pointer slow_get_page) {
 
-    int length = calculation_length(key, counter);
-    cache_item c(std::make_pair(key, slow_get_page(key)), length);
+    int next = calculation_next_appearance(key);
+    cache_item c(std::make_pair(key, slow_get_page(key)), next);
     cache_.push_front(c);
     elem_finder_[key] = cache_.begin();
 }
 
 template<typename T, typename KeyT>
-void perfect_cache<T, KeyT>::decrease_of_numb() {
+void perfect_cache<T, KeyT>::it_is_hit(KeyT key) {
 
-    cache_item_iter it = cache_.begin();
-    while(it != cache_.end()) {
-
-        --(it -> numbefnext_);
-        ++it;
-    }
-}
-
-template<typename T, typename KeyT>
-void perfect_cache<T, KeyT>::it_is_hit(KeyT key, int counter) {
-
-    int length = calculation_length(key, counter);
-    elem_finder_.find(key) -> second -> numbefnext_ = length;
-    decrease_of_numb();
+    int next = calculation_next_appearance(key);
+    elem_finder_.find(key) -> second -> nextappearance_ = next;
 }
 
 template<typename T, typename KeyT>
@@ -146,20 +133,20 @@ void perfect_cache<T, KeyT>::remove_elem(KeyT key) {
 }
 
 template<typename T, typename KeyT>
-KeyT perfect_cache<T, KeyT>::victim_finder(KeyT key, int length) {
+KeyT perfect_cache<T, KeyT>::victim_finder(KeyT key, int next) {
 
     cache_item_iter it = cache_.begin();
     KeyT cor_key = it -> page_.first;
-    int cor_length = it -> numbefnext_;
+    int cor_next = it -> nextappearance_;
     ++it;
 
     while(it != cache_.end()) {
 
-        if(it -> numbefnext_ > cor_length) {
+        if(it -> nextappearance_ > cor_next) {
 
             cor_key = it -> page_.first;
-            cor_length = it -> numbefnext_;
-        } else if (it -> numbefnext_ < 0) {
+            cor_next = it -> nextappearance_;
+        } else if (it -> nextappearance_ < 0) {
 
             cor_key = it -> page_.first;
             return cor_key;
@@ -170,36 +157,34 @@ KeyT perfect_cache<T, KeyT>::victim_finder(KeyT key, int length) {
 }
 
 template<typename T, typename KeyT>
-int perfect_cache<T, KeyT>::lookup_update(KeyT key, int counter, func_pointer slow_get_page) {
+int perfect_cache<T, KeyT>::lookup_update(KeyT key, func_pointer slow_get_page) {
 
     ++((unordered_buffer_.find(key) -> second).amount_);
 
     if(cache_is_full() && elem_finder_.find(key) == elem_finder_.end()) {
 
-        int length = calculation_length(key, counter);
+        int next = calculation_next_appearance(key);
         KeyT victim;
-        if(length < 0) {
+        if(next < 0) {
 
             victim = key;
         } else {
 
-            victim = victim_finder(key, length);
+            victim = victim_finder(key, next);
         }
 
         if(victim != key) {
             remove_elem(victim);
-            insert_elem(key, counter, slow_get_page);
-            decrease_of_numb();
+            insert_elem(key, slow_get_page);
         }
         return 0;
     } else if(!cache_is_full() && elem_finder_.find(key) == elem_finder_.end()) {
 
-        insert_elem(key, counter, slow_get_page);
-        decrease_of_numb();
+        insert_elem(key, slow_get_page);
         return 0;
     } else {
 
-        it_is_hit(key, counter);
+        it_is_hit(key);
         return 1;
     }
 }
