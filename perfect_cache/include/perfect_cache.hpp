@@ -31,15 +31,15 @@ class perfect_cache {
 
         };
 
-        using cache_item_iter = typename std::list<cache_item>::iterator;
-        using un_buf_iter = typename std::unordered_map<KeyT, un_buf_item>::iterator;
-        using find_iter = typename std::unordered_map<KeyT, cache_item_iter>::iterator;
+        using cache_item_iter = std::list<cache_item>::iterator;
+        using un_buf_iter     = std::unordered_map<KeyT, un_buf_item>::iterator;
+        using find_iter       = std::unordered_map<KeyT, cache_item_iter>::iterator;
 
 public:
         perfect_cache(int capacity, int number) : capacity_{capacity}, numb_of_page_{number} {}
         void initial_assembly();
         int lookup_update(KeyT key, func_pointer slow_get_page);
-        KeyT get_incoming_page(int counter);
+        KeyT get_incoming_page(int counter) const;
 
 private:
 
@@ -50,26 +50,26 @@ private:
         std::vector<KeyT> ordered_buffer_; // saves the data received from input
         std::unordered_map<KeyT, cache_item_iter> elem_finder_; // finds element with corresponding value in cache_
 
-        int calculation_next_appearance(KeyT key);
+        int calculation_next_appearance(KeyT key) const;
         void insert_elem(KeyT key, func_pointer slow_get_page);
         void it_is_hit(KeyT key);
         void remove_elem(KeyT key);
-        KeyT victim_finder(KeyT key, int next);//looking for a victim from the elements of cache and incoming page, also decrease of numbefnext_ all list's elements
-        bool cache_is_full();
+        KeyT victim_finder(KeyT key, int next) const;//looking for a victim from the elements of cache and incoming page, also decrease of numbefnext_ all list's elements
+        bool cache_is_full() const;
 }; // <-- Class perfect_cache
 
 template<typename T, typename KeyT>
-bool perfect_cache<T, KeyT>::cache_is_full() {
+bool perfect_cache<T, KeyT>::cache_is_full() const {
 
     return elem_finder_.size() == capacity_;
 }
 
 template<typename T, typename KeyT>
-KeyT perfect_cache<T, KeyT>::get_incoming_page(int counter) {
+KeyT perfect_cache<T, KeyT>::get_incoming_page(int counter) const {
 
     return ordered_buffer_[counter];
 }
-
+ 
 template<typename T, typename KeyT>
 void perfect_cache<T, KeyT>::initial_assembly() {
 
@@ -95,9 +95,9 @@ void perfect_cache<T, KeyT>::initial_assembly() {
 }
 
 template<typename T, typename KeyT>
-int perfect_cache<T, KeyT>::calculation_next_appearance(KeyT key) {
+int perfect_cache<T, KeyT>::calculation_next_appearance(KeyT key) const {
 
-    un_buf_iter it = unordered_buffer_.find(key);
+    auto it = unordered_buffer_.find(key);
     if(((it -> second).history_.begin() + (it -> second).amount_) != (it -> second).history_.end()) {
 
         return (it -> second).history_[(it -> second).amount_];
@@ -133,9 +133,9 @@ void perfect_cache<T, KeyT>::remove_elem(KeyT key) {
 }
 
 template<typename T, typename KeyT>
-KeyT perfect_cache<T, KeyT>::victim_finder(KeyT key, int next) {
+KeyT perfect_cache<T, KeyT>::victim_finder(KeyT key, int next) const {
 
-    cache_item_iter it = cache_.begin();
+    auto it = cache_.cbegin();
     KeyT cor_key = it -> page_.first;
     int cor_next = it -> nextappearance_;
     ++it;
@@ -148,8 +148,7 @@ KeyT perfect_cache<T, KeyT>::victim_finder(KeyT key, int next) {
             cor_next = it -> nextappearance_;
         } else if (it -> nextappearance_ < 0) {
 
-            cor_key = it -> page_.first;
-            return cor_key;
+            return it -> page_.first;
         }
         ++it;
     }
@@ -159,7 +158,8 @@ KeyT perfect_cache<T, KeyT>::victim_finder(KeyT key, int next) {
 template<typename T, typename KeyT>
 int perfect_cache<T, KeyT>::lookup_update(KeyT key, func_pointer slow_get_page) {
 
-    ++((unordered_buffer_.find(key) -> second).amount_);
+    auto& hist = unordered_buffer_.find(key) -> second;
+    ++hist.amount_;
 
     if(cache_is_full() && elem_finder_.find(key) == elem_finder_.end()) {
 

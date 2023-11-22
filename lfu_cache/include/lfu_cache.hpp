@@ -45,7 +45,7 @@ private:
                 freqitem(int freq) : freq_{freq} {}
         };
 
-        bool hash_is_full();
+        bool hash_is_full() const;
         void delete_from_hash(KeyT key); //deletes a node in the  itemlist, then delete pair in hashtable with the corresponding key
         void search_and_delete_from_hash();//searches page in cache that need to delete and delete_from_hash
 	void insert_first_node(KeyT key, func_pointer slow_get_page);//inserts a node in the itemlist with a frequency of 1, if there is not such itemlist, method creates that itemlist, changes all iterators
@@ -53,7 +53,7 @@ private:
 }; // <-- class lfu_cache
 
 template<typename T, typename KeyT>
-bool lfu_cache<T, KeyT>::hash_is_full() {
+bool lfu_cache<T, KeyT>::hash_is_full() const {
 
         return hashtable_.size() == capacity_;
 }
